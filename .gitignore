@@ -1,2 +1,7 @@
 /venv/
-result.xlsx
+*/__pycache__
+*/**.pyc
+**.csv
+**.xlsx
+.vscode/
+__pycache__
