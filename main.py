@@ -33,13 +33,13 @@ def getCaseDetails(case_year, division_code, case_id):
         proxy_port = '8010'
         # Make sure to include ':' at the end
         proxy_auth = '15c8295558e5473a9fd81dd85ac83d22:'
-        proxies = {
-            'https': 'https://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port),
-            'http': 'http://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port)}
+        # proxies = {
+        #     'https': 'https://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port),
+        #     'http': 'http://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port)}
         # print(proxies)
         # Grab the source code
-        source = requests.get('http://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id),
-                              headers=headers, proxies=proxies, verify=False
+        source = requests.get('https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id),
+                              headers=headers#, verify=False
                               ).content
         # And initialize it with BeautifulSoup
         soup = BeautifulSoup(source, 'html.parser')
@@ -152,6 +152,36 @@ def getCaseDetails(case_year, division_code, case_id):
             filing_date_[1]), day=int(filing_date_[0]))
         # --- End filing date ---
 
+        # --- Case Activity ---
+        # Get the base table from source
+        tables = soup.findAll('table')[2:]
+        # Loop over every table
+        for table in tables:
+            # print(str(table.find('tr')))
+            # Some condations when we are not going into the second loop
+            if not len(table.findAll('tr')) < 2 and str(table.find('tr').text).isupper():
+                # Loop over the first two table row
+                for tr in table.findAll('tr')[:2]:
+                    ### Original code
+                    # for td in tr.findAll('td'):
+                    #     try:
+                    #         tdTable = td.findAll('table')[0].text.strip().strip('\n')
+                    #     except:
+                    #         tdTable = ''
+                    #     print(td.text.strip('\n').replace(tdTable, ''))
+                    # print(table)
+                    # print(tr)
+                    # for text in tr.findAll('td'):
+                    #     if text is not None and str(text).strip():
+                    #         print(text.text.strip())
+                    ### Bug fixed
+                    if str(tr.text.replace('\n', '').strip()).isupper():
+                        print('--- %s ---' % tr.text.replace('\n', '').strip())
+                    else:
+                        print(tr.text.replace('\n', '').strip())
+                print('\n')
+        # --- End case activity ---
+
         # Gets the current url for better develop experience :)
         print('URL: ' + 'https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' %
               str(case_year + division_code + case_id))
@@ -160,6 +190,7 @@ def getCaseDetails(case_year, division_code, case_id):
                       defendant=defendant, filing_date=filing_date)
     except:
         # Returns an empty dict if an error accrued :-(
+        # raise
         return {}
     # Return the final result!
     return result
@@ -271,7 +302,7 @@ def spyder(case_year, division_code, case_id):
         print('Not found: %s%s%s' % (case_year, division_code, case_id))
     # result = [{'case_num': '1998D000001', 'plaintiff': ['Rojas Nancy'], 'defendant': ['Cochran Oscar'], 'filing_date': datetime.datetime(1998, 2, 1, 0, 0)}]
     # storeToExcel(result)
-    print(result)
+    # print(result)
 
 
 def getUserAgents():
@@ -296,7 +327,7 @@ def sortResult(x, y):
 def main():
     global result
     thread = []
-    for i in range(1, 2):
+    for i in range(1, 10):
         thread.append(threading.Thread(
             target=spyder, args=('1998', 'D', str(i).zfill(6))))
     for t in thread:
@@ -304,7 +335,7 @@ def main():
     for t in thread:
         t.join()
     result = sorted(result, key=functools.cmp_to_key(sortResult))
-    storeToExcel(result)
+    # storeToExcel(result)
     # time.sleep(3)
     # spyder('2020', 'D', '000001')
 
