@@ -3,15 +3,18 @@ Main file for the Cook County docket
 """
 import requests
 from bs4 import BeautifulSoup
-import datetime, random, time
-
+import datetime
+import random
+import time
 import pymysql
 import threading
 from openpyxl import Workbook
-import os, functools
+import os
+import functools
 
 # Open database connection
 db = pymysql.connect('localhost', 'root', 'sam951951', 'CookCountry')
+
 
 def getCaseDetails(case_year, division_code, case_id):
     """Get the case detail
@@ -25,28 +28,31 @@ def getCaseDetails(case_year, division_code, case_id):
         headers = {
             'User-Agent': 'Mozilla/5.0(Macintosh;IntelMacOSX10_7_0)AppleWebKit/535.11(KHTML,likeGecko)Chrome/17.0.963.56Safari/535.11'
         }
-        url = "http://httpbin.org/ip"
-        proxy_host = "proxy.crawlera.com"
-        proxy_port = "8010"
-        proxy_auth = "15c8295558e5473a9fd81dd85ac83d22:" # Make sure to include ':' at the end
+        url = 'http://httpbin.org/ip'
+        proxy_host = 'proxy.crawlera.com'
+        proxy_port = '8010'
+        # Make sure to include ':' at the end
+        proxy_auth = '15c8295558e5473a9fd81dd85ac83d22:'
         proxies = {
-            "https": "https://{}@{}:{}/".format(proxy_auth, proxy_host, proxy_port),
-            "http": "http://{}@{}:{}/".format(proxy_auth, proxy_host, proxy_port)}
+            'https': 'https://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port),
+            'http': 'http://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port)}
         # print(proxies)
         # Grab the source code
-        source = requests.get('http://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id), headers=headers, 
-            proxies=proxies, verify=False
-        ).content
+        source = requests.get('http://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id),
+                              headers=headers, proxies=proxies, verify=False
+                              ).content
         # And initialize it with BeautifulSoup
         soup = BeautifulSoup(source, 'html.parser')
         # --- Case number ---
         # Simply find the number using bs4
-        case_num = str(soup.find('span', id='lblBottom').text).replace('\n', '').strip()
+        case_num = str(soup.find('span', id='lblBottom').text).replace(
+            '\n', '').strip()
         # --- End case number ---
 
         # --- Plaintiff ---
         # Find the base table list
-        plaintiff_ = soup.find('div', id='objCaseDetails').findAll('table')[1].findAll('td')
+        plaintiff_ = soup.find('div', id='objCaseDetails').findAll('table')[
+            1].findAll('td')
         i = 0
         start = 0
         end = 0
@@ -117,7 +123,8 @@ def getCaseDetails(case_year, division_code, case_id):
 
         for _ in range(len(trs)):
             if trs[_].find_all('td')[0].text == 'Defendant(s)':
-                tmp = str(trs[_+1].find_all('td')[0].text).strip().replace('\n', '').split(' ')
+                tmp = str(trs[_+1].find_all('td')
+                          [0].text).strip().replace('\n', '').split(' ')
                 name = ''
                 # Prettify the names as above
                 for char in tmp:
@@ -126,26 +133,31 @@ def getCaseDetails(case_year, division_code, case_id):
                 if(len(trs[_+2:])) != 0:
                     for i in trs[_+2:]:
                         if i.find_all('td')[0].text not in (None, ''):
-                            tmp = str(i.find_all('td')[0].text).strip().replace('\n', '').split(' ')
+                            tmp = str(i.find_all('td')[0].text).strip().replace(
+                                '\n', '').split(' ')
                             name = ''
                             # Prettify the names as above
                             for char in tmp:
                                 name += ' ' + char.capitalize()
                             defendant.append(name.strip())
-                
+
         # --- End defendant ---
 
         # --- Filing date ---
         # The date list, including year, month, and day
-        filing_date_ = str(soup.find('div', id='objCaseDetails').find('table').find('tr').find('td').text).strip().replace('Filing Date: ', '').split('/')
+        filing_date_ = str(soup.find('div', id='objCaseDetails').find('table').find(
+            'tr').find('td').text).strip().replace('Filing Date: ', '').split('/')
         # Convert it into datetime.datetime format
-        filing_date = datetime.datetime(year=int(filing_date_[2]), month=int(filing_date_[1]), day=int(filing_date_[0]))
+        filing_date = datetime.datetime(year=int(filing_date_[2]), month=int(
+            filing_date_[1]), day=int(filing_date_[0]))
         # --- End filing date ---
 
         # Gets the current url for better develop experience :)
-        print('URL: ' + 'https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id))
+        print('URL: ' + 'https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' %
+              str(case_year + division_code + case_id))
         # Generate the result dict
-        result = dict(case_num=case_num, plaintiff=plaintiff, defendant=defendant, filing_date=filing_date)
+        result = dict(case_num=case_num, plaintiff=plaintiff,
+                      defendant=defendant, filing_date=filing_date)
     except:
         # Returns an empty dict if an error accrued :-(
         return {}
@@ -169,7 +181,8 @@ def storeToDatabase(result):
         # Defendants
         defendants = ','.join(result['defendant'])
         # Filing date
-        filing_date = '%d-%d-%d 00:00:00' % (result['filing_date'].year, result['filing_date'].month, result['filing_date'].day)
+        filing_date = '%d-%d-%d 00:00:00' % (
+            result['filing_date'].year, result['filing_date'].month, result['filing_date'].day)
         # --- End format results ---
 
         # --- SQL ---
@@ -177,7 +190,7 @@ def storeToDatabase(result):
         VALUES ('%s', '%s', '%s', '%s');""" % (caseId, plaintiffs, defendants, filing_date)
         # Execute the SQL
         cursor.execute(sql)
-        ### IMPORTANT: DON'T FORGET THIS LINE
+        # IMPORTANT: DON'T FORGET THIS LINE
         db.commit()
         # --- End SQL ---
 
@@ -226,7 +239,7 @@ def storeToExcel(result):
         print(filing_date)
         sheet['D%d' % i] = filing_date.strftime("%Y-%m-%d")
         i += 1
-    
+
     wb.save('./result.xlsx')
 
 # Tests with random ids and year
@@ -244,7 +257,10 @@ def storeToExcel(result):
 
 # print('Correct persentage: {}%'.format(round((float(failed)/float(total)*100), 2)))
 
+
 result = []
+
+
 def spyder(case_year, division_code, case_id):
     # result = []
     _ = getCaseDetails(case_year, division_code, case_id)
@@ -257,15 +273,18 @@ def spyder(case_year, division_code, case_id):
     # storeToExcel(result)
     print(result)
 
+
 def getUserAgents():
     headers = {
-            'User-Agent': 'Mozilla/5.0(Macintosh;IntelMacOSX10_7_0)AppleWebKit/535.11(KHTML,likeGecko)Chrome/17.0.963.56Safari/535.11'
+        'User-Agent': 'Mozilla/5.0(Macintosh;IntelMacOSX10_7_0)AppleWebKit/535.11(KHTML,likeGecko)Chrome/17.0.963.56Safari/535.11'
     }
-    source = requests.get('https://myip.ms/browse/comp_browseragents/Computer_Browser_Agents.html', headers=headers)
+    source = requests.get(
+        'https://myip.ms/browse/comp_browseragents/Computer_Browser_Agents.html', headers=headers)
     soup = BeautifulSoup(source.text, 'html.parser')
     for agent in soup.findAll('td', class_='row_name'):
         with open('agents.txt', 'a') as f:
             f.write(agent.find('a').text + '\n')
+
 
 def sortResult(x, y):
     if int(str(x['case_num'].split('D')[1]).lstrip('0') > str(y['case_num'].split('D')[1]).lstrip('0')):
@@ -273,20 +292,23 @@ def sortResult(x, y):
     else:
         return -1
 
+
 def main():
     global result
     thread = []
-    for i in range(1, 2001):
-        thread.append(threading.Thread(target=spyder, args=('1998', 'D', str(i).zfill(6))))
+    for i in range(1, 2):
+        thread.append(threading.Thread(
+            target=spyder, args=('1998', 'D', str(i).zfill(6))))
     for t in thread:
         t.start()
-    # for t in thread:
-    #     t.join()
+    for t in thread:
+        t.join()
     result = sorted(result, key=functools.cmp_to_key(sortResult))
     storeToExcel(result)
-        # time.sleep(3)
+    # time.sleep(3)
     # spyder('2020', 'D', '000001')
-        
+
+
 # input()
 main()
 # spyder('1998', 'D', '000001')
