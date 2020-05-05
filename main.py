@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from utils.core import spyder
 from utils.storage import storeToDatabase
+from utils.proxy import getRandomIP
 
 
 def main(min_num=1, max_num=51):
@@ -37,4 +38,5 @@ def main(min_num=1, max_num=51):
 
 
 # Run main function
-main(max_num=11)
+main(max_num=5)
+# print(getRandomIP())

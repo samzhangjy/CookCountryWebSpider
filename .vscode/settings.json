@@ -10,5 +10,6 @@
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
-    "files.exclude": {}
+    "files.exclude": {},
+    "live2D.use": true
 }

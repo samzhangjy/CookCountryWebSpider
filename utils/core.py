@@ -7,6 +7,8 @@ import requests
 from bs4 import BeautifulSoup
 
 from utils.user_agent import getRandomUserAgent
+from utils.proxy import getRandomIP
+from pprint import pprint as print
 
 result = []
 
@@ -23,20 +25,18 @@ def getCaseDetails(case_year, division_code, case_id):
         headers = {
             'User-Agent': str(getRandomUserAgent())
         }
-        url = 'http://httpbin.org/ip'
-        proxy_host = 'proxy.crawlera.com'
-        proxy_port = '8010'
-        # Make sure to include ':' at the end
-        proxy_auth = '15c8295558e5473a9fd81dd85ac83d22:'
-        proxies = {
-            'https': 'https://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port),
-            'http': 'http://{}@{}:{}/'.format(proxy_auth, proxy_host, proxy_port)}
+        # proxy = XunProxy(order_no='ZF2020555974sqNdVi',
+        #                  secret='31e45b1d074a495ebbd3cf43a71f636a')
+        # proxy = proxy._proxy
         # print(proxies)
+        proxies = {
+            "http": 'http://%s' % str(getRandomIP()),
+        }
         # Grab the source code
-        source = requests.get('https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id),
-                              headers=headers, timeout=30
+        source = requests.get('http://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id),
+                              headers=headers, timeout=30, proxies=proxies
                               ).content
-        # print(source)
+        print(source)
         # And initialize it with BeautifulSoup
         soup = BeautifulSoup(source, 'html.parser')
         # --- Case number ---
@@ -190,6 +190,7 @@ def getCaseDetails(case_year, division_code, case_id):
                       defendant=defendant, filing_date=filing_date, case_activity=case_activity)
     except:
         # Returns an empty dict if an error accrued :-(
+        raise
         return {}
     # Return the final result!
     return result
@@ -227,6 +228,7 @@ def spyder(case_year, division_code, case_id, store_to=None, print_out=False):
         return 0
     except:
         # Failed
+        # raise
         return 1
 
 

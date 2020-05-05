@@ -38,12 +38,12 @@ def storeToDatabase(results):
 
             # --- SQL ---
             cursor.execute(
-                "SELECT case_id, COUNT(*) FROM `Case` WHERE case_id = %s GROUP BY case_id",
+                "SELECT case_id, COUNT(*) FROM `RealCase` WHERE case_id = %s GROUP BY case_id",
                 (case_id,)
             )
-            row_count = cursor.rowcount
+            row_count = cursor.row_count
             if row_count == 0:
-                sql = """INSERT INTO `Case` (case_id, defendants, plaintiffs, filing_date, case_activity)
+                sql = """INSERT INTO `RealCase` (case_id, defendants, plaintiffs, filing_date, case_activity)
                 VALUES ('%s', '%s', '%s', '%s', "%s");""" % (case_id, plaintiffs, defendants, filing_date, case_activity)
                 # Execute the SQL
                 cursor.execute(sql)
@@ -58,6 +58,7 @@ def storeToDatabase(results):
     except:
         # Otherwise, return 1 for error
         cursor.close()
+        # raise
         return 1
 
 
