@@ -1,16 +1,21 @@
+# -*- coding: utf-8 -*-
+# @Author: Your name
+# @Date:   2020-05-05 21:01:36
+# @Last Modified by:   Your name
+# @Last Modified time: 2020-05-05 21:44:14
 """
 The core util for the web spider
 """
 import datetime
+from pprint import pprint as print
 
 import requests
 from bs4 import BeautifulSoup
 
-from utils.user_agent import getRandomUserAgent
 from utils.proxy import getRandomIP
-from pprint import pprint as print
+from utils.user_agent import getRandomUserAgent
 
-result = []
+results = []
 
 
 def getCaseDetails(case_year, division_code, case_id):
@@ -22,13 +27,11 @@ def getCaseDetails(case_year, division_code, case_id):
     filing date and case activity. If not, returns an empty dict.
     """
     try:
+        # Define the random user agent header
         headers = {
             'User-Agent': str(getRandomUserAgent())
         }
-        # proxy = XunProxy(order_no='ZF2020555974sqNdVi',
-        #                  secret='31e45b1d074a495ebbd3cf43a71f636a')
-        # proxy = proxy._proxy
-        # print(proxies)
+        # Define the proxies from getRandomIP() function
         proxies = {
             "http": 'http://%s' % str(getRandomIP()),
         }
@@ -36,7 +39,7 @@ def getCaseDetails(case_year, division_code, case_id):
         source = requests.get('http://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id),
                               headers=headers, timeout=30, proxies=proxies
                               ).content
-        print(source)
+        # print(source)
         # And initialize it with BeautifulSoup
         soup = BeautifulSoup(source, 'html.parser')
         # --- Case number ---
@@ -190,7 +193,7 @@ def getCaseDetails(case_year, division_code, case_id):
                       defendant=defendant, filing_date=filing_date, case_activity=case_activity)
     except:
         # Returns an empty dict if an error accrued :-(
-        raise
+        # raise
         return {}
     # Return the final result!
     return result
@@ -214,7 +217,7 @@ def spyder(case_year, division_code, case_id, store_to=None, print_out=False):
         # If the result is not empty (or not found)
         if _ != {}:
             # Append it to the global result list
-            result.append(_)
+            results.append(_)
             if print_out:
                 print(_)
         elif print_out:
@@ -228,7 +231,7 @@ def spyder(case_year, division_code, case_id, store_to=None, print_out=False):
         return 0
     except:
         # Failed
-        # raise
+        raise
         return 1
 
 

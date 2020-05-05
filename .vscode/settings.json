@@ -11,5 +11,7 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
     "files.exclude": {},
-    "live2D.use": true
+    "live2D.use": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }

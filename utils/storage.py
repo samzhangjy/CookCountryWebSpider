@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: Your name
+# @Date:   2020-05-05 21:08:48
+# @Last Modified by:   Your name
+# @Last Modified time: 2020-05-05 21:11:59
 """
 Storage util for the spider
 """
@@ -7,6 +12,7 @@ from pprint import pprint as print
 import pymysql
 from openpyxl import Workbook
 from tqdm import tqdm
+from config.config import *
 
 
 def storeToDatabase(results):
@@ -16,7 +22,8 @@ def storeToDatabase(results):
     """
     try:
         # Open database connection
-        db = pymysql.connect('localhost', 'root', 'sam951951', 'CookCountry')
+        db = pymysql.connect(DATABASE_HOST, DATABASE_USERNAME,
+                             DATABASE_PASSWORD, DATABASE_NAME)
         for result in results:
             # Prepare a cursor object using cursor() method
             cursor = db.cursor()
@@ -38,12 +45,12 @@ def storeToDatabase(results):
 
             # --- SQL ---
             cursor.execute(
-                "SELECT case_id, COUNT(*) FROM `RealCase` WHERE case_id = %s GROUP BY case_id",
+                "SELECT case_id, COUNT(*) FROM `Case` WHERE case_id = %s GROUP BY case_id",
                 (case_id,)
             )
-            row_count = cursor.row_count
+            row_count = 0
             if row_count == 0:
-                sql = """INSERT INTO `RealCase` (case_id, defendants, plaintiffs, filing_date, case_activity)
+                sql = """INSERT INTO `Case` (case_id, defendants, plaintiffs, filing_date, case_activity)
                 VALUES ('%s', '%s', '%s', '%s', "%s");""" % (case_id, plaintiffs, defendants, filing_date, case_activity)
                 # Execute the SQL
                 cursor.execute(sql)
@@ -58,7 +65,7 @@ def storeToDatabase(results):
     except:
         # Otherwise, return 1 for error
         cursor.close()
-        # raise
+        raise
         return 1
 
 

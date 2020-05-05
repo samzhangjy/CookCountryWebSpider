@@ -1,5 +1,0 @@
-"""
-Proxy configs
-"""
-SPIDER_ID = 'a9a4d7fd09d948408904bec8a4905f85'
-SPIDER_SECRET = '31e45b1d074a495ebbd3cf43a71f636a'
