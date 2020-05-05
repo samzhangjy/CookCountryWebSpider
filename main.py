@@ -29,7 +29,7 @@ def main(min_num=1, max_num=51):
     for t in tqdm(thread):
         t.start()
     # Let the parent thread be idle before all its child threads are finished
-    for t in thread:
+    for t in tqdm(thread):
         t.join()
     end = time.time()
     total = end - start
@@ -37,4 +37,4 @@ def main(min_num=1, max_num=51):
 
 
 # Run main function
-main(max_num=501)
+main(max_num=11)

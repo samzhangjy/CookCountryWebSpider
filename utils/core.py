@@ -1,5 +1,5 @@
 """
-The core util for the web spyder
+The core util for the web spider
 """
 import datetime
 

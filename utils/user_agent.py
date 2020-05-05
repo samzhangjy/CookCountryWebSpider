@@ -1,5 +1,5 @@
 """
-User agent utils for the cookcountry clerk web spyder
+User agent utils for the cookcountry clerk web spider
 """
 import random
 
