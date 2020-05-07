@@ -9,9 +9,11 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
-    "python.testing.unittestEnabled": true,
+    "python.testing.unittestEnabled": false,
     "files.exclude": {},
     "live2D.use": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": false,
+    "python.testing.promptToConfigure": false,
+    "python.linting.pycodestyleEnabled": true
 }

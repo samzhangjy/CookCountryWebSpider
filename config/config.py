@@ -11,4 +11,4 @@ DATABASE_HOST = 'localhost'
 # The database name you've created
 DATABASE_NAME = 'CookCountry'
 # The database table name you've created, for details please see ../main.py
-DATABASE_TABLE = 'Case'
+DATABASE_TABLE = 'RealCase'

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# @Author: Your name
+# @Author: Sam Zhang
 # @Date:   2020-05-05 21:02:15
-# @Last Modified by:   Your name
-# @Last Modified time: 2020-05-05 21:08:13
+# @Last Modified by:   Sam Zhang
+# @Last Modified time: 2020-05-06 18:24:05
 """
      ██████╗ ██████╗  ██████╗ ██╗  ██╗ ██████╗ ██████╗ ██╗   ██╗███╗   ██╗████████╗██████╗ ██╗   ██╗    ███████╗██████╗ ██╗██████╗ ███████╗██████╗
     ██╔════╝██╔═══██╗██╔═══██╗██║ ██╔╝██╔════╝██╔═══██╗██║   ██║████╗  ██║╚══██╔══╝██╔══██╗╚██╗ ██╔╝    ██╔════╝██╔══██╗██║██╔══██╗██╔════╝██╔══██╗
@@ -12,7 +12,7 @@
      ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝       ╚══════╝╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
     Main file for the Cook County docket web spider
 """
-import threading
+import multiprocessing
 import time
 from pprint import pprint as print
 
@@ -36,21 +36,25 @@ def main(min_num=1, max_num=51):
     print('Getting case data...')
     start = time.time()
     # The threads list
-    thread = []
+    pool = multiprocessing.Pool(10)
     # Append all the threads
     for i in range(min_num, max_num):
-        thread.append(threading.Thread(
-            target=spyder, args=('1998', 'D', str(i).zfill(6), storeToDatabase)))
-    # Start all threads
-    for t in tqdm(thread):
-        t.start()
-    # Let the parent thread be idle before all its child threads are finished
-    for t in tqdm(thread):
-        t.join()
+        pool.apply_async(
+            spyder, args=('1998', 'D', str(i).zfill(6), storeToDatabase))
+    pool.close()
+    pool.join()
+    # # Start all threads
+    # for t in tqdm(thread):
+    #     t.start()
+    # # Let the parent thread be idle before all its child threads are finished
+    # for t in tqdm(thread):
+    #     t.join()
     end = time.time()
     total = end - start
-    print('Total time cost: %d' % total)
+    print('Total time cost: %.2fs' % total)
 
 
-# Run main function
-main(max_num=20001)
+if __name__ == '__main__':
+    # Run main function
+    main(max_num=10)
+    # spyder('1998', 'D', '22345674'.zfill(6))

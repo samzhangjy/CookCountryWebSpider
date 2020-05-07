@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# @Author: Your name
+# @Author: Sam Zhang
 # @Date:   2020-05-05 21:01:36
-# @Last Modified by:   Your name
-# @Last Modified time: 2020-05-05 21:44:14
+# @Last Modified by:   Sam Zhang
+# @Last Modified time: 2020-05-06 12:05:06
 """
 The core util for the web spider
 """
@@ -14,8 +14,11 @@ from bs4 import BeautifulSoup
 
 from utils.proxy import getRandomIP
 from utils.user_agent import getRandomUserAgent
+# import threading
 
 results = []
+
+# lock = threading.Lock()
 
 
 def getCaseDetails(case_year, division_code, case_id):
@@ -37,9 +40,10 @@ def getCaseDetails(case_year, division_code, case_id):
         }
         # Grab the source code
         source = requests.get('http://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' % str(case_year + division_code + case_id),
-                              headers=headers, timeout=30, proxies=proxies
-                              ).content
+                              headers=headers, timeout=10
+                              ).text
         # print(source)
+        # lock.acquire()
         # And initialize it with BeautifulSoup
         soup = BeautifulSoup(source, 'html.parser')
         # --- Case number ---
@@ -189,8 +193,10 @@ def getCaseDetails(case_year, division_code, case_id):
         # print('URL: ' + 'https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase=%s&SearchType=0&Database=4&case_no=&PLtype=1&sname=&CDate=' %
         #      str(case_year + division_code + case_id))
         # Generate the result dict
+        # lock.acquire()
         result = dict(case_num=case_num, plaintiff=plaintiff,
                       defendant=defendant, filing_date=filing_date, case_activity=case_activity)
+        # lock.release()
     except:
         # Returns an empty dict if an error accrued :-(
         # raise
@@ -199,7 +205,7 @@ def getCaseDetails(case_year, division_code, case_id):
     return result
 
 
-def spyder(case_year, division_code, case_id, store_to=None, print_out=False):
+def spyder(case_year, division_code, case_id, store_to=None, print_out=True):
     """Get the case detail and store it
     :param case_year: str, the year of the given case, will be passed to `getCaseDetails`
     :param division_code: str, the division code of the given case,
@@ -226,12 +232,12 @@ def spyder(case_year, division_code, case_id, store_to=None, print_out=False):
         # Check the store_to param
         if store_to is not None:
             # Store it
-            store_to(result)
+            store_to(_)
         # Success
         return 0
     except:
         # Failed
-        raise
+        # raise
         return 1
 
 
